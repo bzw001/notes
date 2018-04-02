@@ -15,7 +15,7 @@ function Vue (options) {
 }
 // 给Vue挂载各种方法属性
 initMixin(Vue)
-stateMixin(Vue)
+stateMixin(Vue)   //初始化 props,data,computed,methods,watched成员
 eventsMixin(Vue)
 lifecycleMixin(Vue)
 renderMixin(Vue)
