@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>柱状图与快排</title>
+    <style>
+        .container{
+            width: 800px;
+            height:400px;
+            border: 1px solid red;
+            /* display: flex; */
+            align-items: flex-end;
+            position: relative;
+        }
+        .container>div{
+            /* flex:1; */
+            height: 300px;
+            border: 1px solid blue;
+            background-color: yellow;
+            margin-right:20px;
+            width: 20px;
+            position: absolute;
+            bottom:0;
+            transition: left .5s;
+            color: red;
+            text-align: center;
+            line-height: 300px;
+        }
+        /* #a1{
+            left:30px;
+        }
+        #a2{
+            left:60px;
+        } */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- <div id='a1'>1</div>
+        <div id='a2'>1</div>
+        <div>1</div>
+        <div>1</div>
+        <div>1</div>
+        <div>1</div>
+        <div>1</div> -->
+    </div>
+    <script>
+        var box = document.querySelector('.container')
+        class renderColumnar{
+            constructor(arr,targetDom){
+                this.arr = arr;
+                this.targetDom = targetDom;
+                this.basicDistance =parseFloat( this.getCss(this.targetDom,'width')) / arr.length;
+                console.log( this.basicDistance )
+            }
+            //根据元素多少,在目标dom下产生多少个dom
+            renderDom(){
+                this.arr.forEach((val,index) => {
+                    let div = document.createElement('div');
+                    div.setAttribute('id',`a${index}`);
+                    div.style.left = index * this.basicDistance + 'px';
+                    div.style.width = this.basicDistance - 10 + 'px';
+                    div.innerText = val;
+                    this.targetDom.appendChild(div);
+                })
+            }
+            transferDom(rIndex,lIndex){
+                
+                if(rIndex == lIndex) return;
+                let temp = this.arr[lIndex];
+                this.arr[lIndex] = this.arr[rIndex];
+                this.arr[rIndex] = temp;
+                let rDom = document.getElementById('a'+rIndex);
+                let lDom = document.getElementById('a'+lIndex);
+                rDom.setAttribute('id','a'+lIndex);
+                lDom.setAttribute('id','a'+rIndex);
+                let rDomleft = rDom.style.left;
+                let lDomleft = lDom.style.left;
+                rDom.style.left = lDomleft ;
+                lDom.style.left = rDomleft ;
+            }
+            getCss(dom,prop){
+                if (document.defaultView.getComputedStyle) {
+                    return document.defaultView.getComputedStyle(dom,null)[prop]
+                }else if (dom.currentStyle) {
+                    return dom.currentStyle[prop];
+                }
+                return '';
+            }
+        }
+        let tasks = [];
+         function quickSort(arr,left,right){
+            //返回条件，数据为单个元素
+            if (left < right) {
+                //找基数
+                let virtualBase = arr[right]; //假定基数
+                var baseIndex = left - 1; //用来得到真基数
+                var temp;
+                //循环比较
+                for (var j = left; j <= right; j++) {
+                    if (arr[j] <= virtualBase) {
+                        baseIndex ++; //这里baseIndex必须先加,因为要紧跟left
+                        temp = arr[baseIndex];
+                        arr[baseIndex] = arr[j];
+                        arr[j] = temp;
+                        if (baseIndex != j)  tasks.push([baseIndex,j]);
+                    }
+                }
+                quickSort(arr,left,baseIndex - 1);//对基数左边数组排序
+                quickSort(arr,baseIndex + 1,right);//对基数右边数组排序
+            }
+            return arr;
+        }
+        var arr = [1,2,12,1,23,123123,123231,111,23,2,34,123];
+        var columnar = new renderColumnar(arr.slice(),box);
+        columnar.renderDom();
+        console.log(quickSort(arr,0,arr.length - 1));
+        console.log(tasks);
+        tasks.forEach((val,index)=>{
+            setTimeout(() => {
+                 columnar.transferDom(val[0],val[1]);
+                // columnar.transferDom(val[0],val[1]);
+            },1000*(index + 1))
+        })
+        console.log(columnar.arr);
+
+    </script>
+    
+</body>
+</html>
