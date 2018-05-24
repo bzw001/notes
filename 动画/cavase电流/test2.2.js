@@ -88,9 +88,8 @@ function generatePath({startPoint, endPoint, delay = 0 ,arriveTargetCb }) {
               return currentX >= this.endPoint.x && currentY <= this.endPoint.y; 
           }).bind(path)
           translate = (function(currentX, currentY, speed) {
-            let x = Math.sqrt(Math.pow(speed, 2) / (Math.pow(this.ratio,2) + 1)) + currentX;
-            // let x = currentX + speed;
-            let y = -Math.sqrt(Math.pow(speed, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + currentY;
+            let x = currentX + speed;
+            let y = speed * this.ratio + currentY;
             return {x, y}
           }).bind(path);
         } else if (endPoint.x > startPoint.x && endPoint.y > startPoint.y)  {
@@ -100,9 +99,8 @@ function generatePath({startPoint, endPoint, delay = 0 ,arriveTargetCb }) {
              return currentX >= this.endPoint.x && currentY >= this.endPoint.y; 
           }).bind(path);
           translate = (function(currentX, currentY, speed) {
-            let x = Math.sqrt(Math.pow(speed, 2) / (Math.pow(this.ratio,2) + 1)) + currentX;
-            // let y = speed * this.ratio + currentY;
-            let y = Math.sqrt(Math.pow(speed, 2)/ (1/Math.pow(this.ratio, 2) + 1)) +  currentY;
+            let x = currentX + speed;
+            let y = speed * this.ratio + currentY;
             return {x, y}
           }).bind(path);
         } else if(endPoint.x < startPoint.x && endPoint.y < startPoint.y) {
@@ -112,10 +110,8 @@ function generatePath({startPoint, endPoint, delay = 0 ,arriveTargetCb }) {
                 return currentX <= this.endPoint.x && currentY <= this.endPoint.y; 
              }).bind(path);
              translate = (function(currentX, currentY, speed) {
-                // let x = currentX - speed;
-                let x = -Math.sqrt(Math.pow(speed, 2) / (Math.pow(this.ratio,2) + 1)) + currentX;
-                // let y = currentY - speed * this.ratio;
-                let y = -Math.sqrt(Math.pow(speed, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + currentY;
+                let x = currentX - speed;
+                let y = currentY - speed * this.ratio;
                 return {x, y}
               }).bind(path);
         } else if (endPoint.x < startPoint.x && endPoint.y > startPoint.y) {
@@ -126,10 +122,8 @@ function generatePath({startPoint, endPoint, delay = 0 ,arriveTargetCb }) {
                 return currentX <= this.endPoint.x && currentY >= this.endPoint.y; 
              }).bind(path);
              translate = (function(currentX, currentY, speed) {
-                let x = -Math.sqrt(Math.pow(speed, 2) / (Math.pow(this.ratio,2) + 1)) + currentX;
-                // let x = currentX + speed * this.ratio;
-                // let y = currentY - speed * this.ratio;
-                let y = Math.sqrt(Math.pow(speed, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + currentY;
+                let x = currentX + speed * this.ratio;
+                let y = currentY - speed * this.ratio;
                 return {x, y}
               }).bind(path);
         }
@@ -240,26 +234,26 @@ class Star {
                 endAngle = this.angle + Math.PI/2;
                 break;
             case 'right-up':
-                x = -Math.sqrt(Math.pow(len, 2) / (Math.pow(this.ratio,2) + 1)) + this.x;
-                y = Math.sqrt(Math.pow(len, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + this.y;
+                x = this.x + len * this.ratio;
+                y = this.y - len * this.ratio;
                 startAngle = -Math.PI/2 - this.angle;
                 endAngle =  Math.PI/2 - this.angle;
                 break;
             case 'right-down':
-                x = -Math.sqrt(Math.pow(len, 2) / (Math.pow(this.ratio,2) + 1)) + this.x;
-                y = -Math.sqrt(Math.pow(len, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + this.y;
+                x = this.x - len * this.ratio;
+                y = this.y - len * this.ratio;
                 startAngle = - this.angle  ;
                 endAngle =  Math.PI/2 + this.angle;
                 break;
             case 'left-up':
-                x = Math.sqrt(Math.pow(len, 2) / (Math.pow(this.ratio,2) + 1)) + this.x;
-                y = Math.sqrt(Math.pow(len, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + this.y;
+                x = this.x + len * this.ratio;
+                y = this.y + len * this.ratio;
                 startAngle = Math.PI/2 + this.angle;
                 endAngle = this.angle - Math.PI/2;
                 break;
             case 'left-down':
-                x = Math.sqrt(Math.pow(len, 2) / (Math.pow(this.ratio,2) + 1)) + this.x;
-                y = - Math.sqrt(Math.pow(len, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + this.y;
+                x = this.x - len * this.ratio;
+                y = this.y + len * this.ratio;
                 startAngle = Math.PI/2 - this.angle;
                 endAngle =  3 * Math.PI /2 - this.angle ;
                 break;
@@ -297,7 +291,7 @@ class Star {
         this.ctx.fillStyle = gra
         this.ctx.beginPath()
         //流星头，二分之一圆
-        let {x, y,startAngle , endAngle} = this.getStarEndLinePosAndArc(20);
+        let {x, y,startAngle , endAngle} = this.getStarEndLinePosAndArc(40);
         this.ctx.arc( this.x, this.y, this.radius, startAngle  ,endAngle)
         //绘制流星尾，三角形
         this.ctx.lineTo(x,y);
@@ -333,70 +327,40 @@ class Star {
      let drawers1 = []; 
      //获取canvas
     var canvas = document.getElementsByTagName('canvas')[0];
-    // canvas.width = window.innerWidth;
-    // canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     var ctx = canvas.getContext('2d');
-    // let path1 = generatePath({startPoint: {x: 100, y: 500}, endPoint: {x:500, y: 500}, delay: 1000,
-    //     arriveTargetCb: function(ctx){
-    //         let path1 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 100}});
-    //         let path2 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 900}});
-    //         let path3 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 500}})
-    //         let star1 = new Star({paths:[path1], ctx, speed:4, radius:4, infinite: false});
-    //         let star2 = new Star({paths:[path2], ctx, speed:4, radius:4, infinite: false});
-    //         let star3 = new Star({paths:[path3], ctx, speed:4, radius:4, infinite: false});
-    //         drawers.push(star1,star2,star3 );
-    //         drawers1 = drawers.slice(0);
-    //         return {stop: true};
-    // }});
-    let path1 = generatePath({startPoint: {x: 635, y: 583}, endPoint: {x:158, y: 407}, delay: 0})
-    let path2 = generatePath({startPoint: {x: 158, y: 407}, endPoint: {x:205, y: 383}, delay: 0})
-    let path3 = generatePath({startPoint: {x: 209, y: 319}, endPoint: {x:213, y: 309}, delay: 500})
-    let path4 = generatePath({startPoint: {x: 213, y: 309}, endPoint: {x:278, y: 334}, delay: 0})
-    let path5 = generatePath({startPoint: {x: 373, y: 373}, endPoint: {x:419, y: 391}, delay: 500,
-        arriveTargetCb: function(ctx) {
-            let star1 = new Star({paths:[path9,path19,path20,path21,path22], ctx, speed:0.5, radius:2, infinite: false});
-            let star2 = new Star({paths:[path9,path14,path15,path16,path17,path18], ctx, speed:0.5, radius:2, infinite: false});
-            let star3 = new Star({paths:[path9,path10,path11,path12,path13], ctx, speed:0.5, radius:2, infinite: false});
-            drawers.push(star1,star2,star3);
-            return {stop: false};
-        }
-    })
-    let path6 = generatePath({startPoint: {x: 148, y: 414}, endPoint: {x:205, y: 383}, delay: 0});
-    
-    let path7 = generatePath({startPoint: {x: 539, y: 435}, endPoint: {x:484, y: 415}, delay: 1000});
-    let path8 = generatePath({startPoint: {x: 187, y: 267}, endPoint: {x:410, y: 351}, delay: 800});
-    
-    let path9 = generatePath({startPoint: {x: 467, y: 342}, endPoint: {x:475, y: 336}, delay: 400});
-    let path10 = generatePath({startPoint: {x: 475, y: 336}, endPoint: {x:592, y: 379}, delay: 0});
-    let path11 = generatePath({startPoint: {x: 592, y: 379}, endPoint: {x:595, y: 339}, delay: 0});
-    let path12 = generatePath({startPoint: {x: 595, y: 339}, endPoint: {x:645, y: 349}, delay: 0});
-    let path13 = generatePath({startPoint: {x: 645, y: 349}, endPoint: {x:690, y: 320}, delay: 0});
-    
-    let path14 = generatePath({startPoint: {x: 475, y: 336}, endPoint: {x:496, y: 323}, delay: 0});
-    let path15 = generatePath({startPoint: {x: 496, y: 323}, endPoint: {x:487, y: 319}, delay: 0});
-    let path16 = generatePath({startPoint: {x: 487, y: 319}, endPoint: {x:486, y: 294}, delay: 0});
-    let path17 = generatePath({startPoint: {x: 486, y: 294}, endPoint: {x:506, y: 293}, delay: 0});
-    let path18 = generatePath({startPoint: {x: 506, y: 293}, endPoint: {x:547, y: 270}, delay: 0});
-    
-    
-    let path19 = generatePath({startPoint: {x: 475, y: 336}, endPoint: {x:355, y: 293}, delay: 0});
-    let path20 = generatePath({startPoint: {x: 355, y: 293}, endPoint: {x:354, y: 239}, delay: 0});
-    let path21 = generatePath({startPoint: {x: 354, y: 239}, endPoint: {x:364, y: 245}, delay: 0});
-    let path22 = generatePath({startPoint: {x: 364, y: 245}, endPoint: {x:413, y: 217}, delay: 0});
-    function generateStars() {
-        let stars = [];
-        let start_r_d =  new Star({paths:[path1, path2, path3,path4,path5], ctx, speed:2, radius:2});
-        let start_r_m =  new Star({paths:[path7], ctx, speed:1, radius:2});
-        let start_l_d =  new Star({paths:[path3,path4,path5,path6], ctx, speed:1, radius:2});
-        let start_l_m =  new Star({paths:[path8], ctx, speed:1, radius:2});
-        stars.push(start_r_d);
-        stars.push(start_r_m);
-        stars.push(start_l_d);
-        stars.push(start_l_m);
-        return stars;
-    }
-    let line = new Line({paths:[path1, path2, path3,path4,path5,path6,path7,path8,path9,path10,path11,path12,path13,path14,path15,path16,path17,path18,path19,path20,path21,path22], ctx});
-    drawers = generateStars();
+    let path1 = generatePath({startPoint: {x: 100, y: 500}, endPoint: {x:500, y: 500}, delay: 1000,
+        arriveTargetCb: function(ctx){
+            let path1 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 100}});
+            let path2 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 900}});
+            let path3 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 500}})
+            let star1 = new Star({paths:[path1], ctx, speed:4, radius:4, infinite: false});
+            let star2 = new Star({paths:[path2], ctx, speed:4, radius:4, infinite: false});
+            let star3 = new Star({paths:[path3], ctx, speed:4, radius:4, infinite: false});
+            drawers.push(star1,star2,star3 );
+            drawers1 = drawers.slice(0);
+            return {stop: true};
+    }});
+    let path2 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:100, y: 100}, delay: 0})
+    let path3 = generatePath({startPoint: {x: 100, y: 100}, endPoint: {x:500, y: 500}})
+    let path4 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:500, y: 100}, delay: 0})
+    let path5 = generatePath({startPoint: {x: 500, y: 100}, endPoint: {x:500, y: 500}})
+    let path6 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 100}})
+    let path7 = generatePath({startPoint: {x: 900, y: 100}, endPoint: {x:500, y: 500}})
+    let path8 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 500}})
+    let path9 = generatePath({startPoint: {x: 900, y: 500}, endPoint: {x:500, y: 500}})
+    let path10 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:900, y: 900}})
+    let path11 = generatePath({startPoint: {x: 900, y: 900}, endPoint: {x:500, y: 500}})
+    let path12 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:500, y: 900}})
+    let path13 = generatePath({startPoint: {x: 500, y: 900}, endPoint: {x:500, y: 500}})
+    let path14 = generatePath({startPoint: {x: 500, y: 500}, endPoint: {x:100, y: 900}})
+    let star = new Star({paths:[path1, path2, path3,path4,path5,path6,path7,path8,path9,path10,path11,path12,path13,path14], ctx, speed:4, radius:4});
+    let line = new Line({paths:[path1, path2, path3,path4,path5,path6,path7,path8,path9,path10,path11,path12,path13,path14], ctx})
+    drawers.push(star);
+    console.log(drawers)
+    drawers1 = drawers.slice(0);
+    console.log(drawers1)
     function update() {
         ctx.clearRect(  0, 0, canvas.width, canvas.height);
         line.draw();
@@ -405,10 +369,12 @@ class Star {
                 arr.splice(index, 1);
             }
         })
-        // if (!drawers.length) {
-        // }
+        if (!drawers.length) {
+        }
         frameId = window.requestAnimationFrame(update);
-  
+        // if (i > 400) {
+        //     window.cancelAnimationFrame(id )
+        // };
     }
 
 

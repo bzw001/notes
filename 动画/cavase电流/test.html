@@ -7,7 +7,7 @@
   <title>Document</title>
   <style>
     body {
-    background: #000;
+    background: #ccc;
     margin: 0;
     padding: 0;
     width: 100%;
@@ -20,6 +20,7 @@
     }
     canvas {
         /* transform: rotateX(10deg); */
+        background-color: #000;
     }
     footer {
         position: absolute;
@@ -38,7 +39,7 @@
 </head>
 <body>
     <button onclick="window.cancelAnimationFrame(frameId)" style="transform: rotateX(2deg);">停止动画</button>
-  <canvas></canvas>
+  <canvas width="800" height="800"></canvas>
   <script src="./test2.js"></script>
 </body>
 </html>
