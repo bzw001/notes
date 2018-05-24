@@ -5,7 +5,8 @@ function getAngle(x1, y1, x2, y2) {
     // 斜边长
     var z = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     // 余弦
-    var cos = y / z;
+    // var cos = y / z;
+    var cos = x / z;
     // 弧度
     var radina = Math.acos(cos);
     // 角度
@@ -22,7 +23,7 @@ var frameId;
  */
 function generatePath({startPoint, endPoint, delay = 0 ,arriveTargetCb }) {
     let path = {};
-    let isArriveTarget, translate, angle,ratio, direction;
+    let isArriveTarget, translate, angle,ratio, direction;``
     path.startPoint = startPoint;
     path.endPoint = endPoint;
     path.delay = delay;
@@ -176,6 +177,8 @@ class Star {
         this.arriveTargetCb = paths[0].arriveTargetCb;
         this.timeStamp = 0;
         this.stopDraw = false; //停止动画
+        this.distance = 0;
+        this.starLineLen = 20;
     }
     isAcrossEnd (){
         if (this.delay && !this.timeStamp) {
@@ -197,6 +200,7 @@ class Star {
                 }
                 let path = this.paths[this.currentPathIndex];
                 // debugger;
+                this.distance = 0;
                 this.x = path.startPoint.x;
                 this.y = path.startPoint.y;
                 this.translate = path.translate;
@@ -248,14 +252,16 @@ class Star {
             case 'right-down':
                 x = -Math.sqrt(Math.pow(len, 2) / (Math.pow(this.ratio,2) + 1)) + this.x;
                 y = -Math.sqrt(Math.pow(len, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + this.y;
-                startAngle = - this.angle  ;
+                startAngle = this.angle - Math.PI/2 ;
                 endAngle =  Math.PI/2 + this.angle;
                 break;
             case 'left-up':
                 x = Math.sqrt(Math.pow(len, 2) / (Math.pow(this.ratio,2) + 1)) + this.x;
                 y = Math.sqrt(Math.pow(len, 2)/ (1/Math.pow(this.ratio, 2) + 1)) + this.y;
+                // console.log('left-up', this.angle);
                 startAngle = Math.PI/2 + this.angle;
-                endAngle = this.angle - Math.PI/2;
+                // endAngle = this.angle - Math.PI/2;
+                endAngle = 3 * Math.PI /2 + this.angle;
                 break;
             case 'left-down':
                 x = Math.sqrt(Math.pow(len, 2) / (Math.pow(this.ratio,2) + 1)) + this.x;
@@ -289,15 +295,16 @@ class Star {
         if( this.isDelaying()) {
             return false;
         }
+        var starLineLen = this.distance >= this.starLineLen ? this.starLineLen : this.distance;
         let gra = this.ctx.createRadialGradient(
             this.x, this.y, 0,  this.x, this.y, 80)
         gra.addColorStop(0, '#16fcfd')
         gra.addColorStop(1, 'rgba(0,0,0,0)')
         this.ctx.save()
         this.ctx.fillStyle = gra
-        this.ctx.beginPath()
+        this.ctx.beginPath();
         //流星头，二分之一圆
-        let {x, y,startAngle , endAngle} = this.getStarEndLinePosAndArc(20);
+        let {x, y,startAngle , endAngle} = this.getStarEndLinePosAndArc(starLineLen);
         this.ctx.arc( this.x, this.y, this.radius, startAngle  ,endAngle)
         //绘制流星尾，三角形
         this.ctx.lineTo(x,y);
@@ -307,6 +314,7 @@ class Star {
         let pos = this.translate(this.x, this.y, this.speed);
         this.x = pos.x;
         this.y = pos.y;
+        this.distance += this.speed;
         return false;
     }
  }
