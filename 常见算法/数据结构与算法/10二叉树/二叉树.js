@@ -130,3 +130,40 @@ function find(data) {
   }
   return null;
 }
+
+function remove(data) {
+  root = removeNode(this.root, data);
+}
+
+function removeNode(node, data) {
+  if (!node) {
+    return null;
+  }
+  if(data == node.data) {
+    //叶子节点
+    if (!node.left && !node.right) {
+      return null
+    }
+    //只有右子节点的节点
+    if (!node.left) {
+      return node.right;
+    }
+    //只有左节点的节点
+    if (!node.right) {
+      return node.left;
+    }
+    //有左右节点
+    var tempNode = getSmallest(node.right);// 获取数最小的节点
+    node.data = tempNode.data;
+    node.right = removeNode(node.right, tempNode.data);
+    return node;
+  }
+  else if (data < node.data) {
+    node.left = removeNode(node.left, data);
+    return node;
+  }
+  else {
+    node.right = removeNode(node.right, data);
+    return node;
+  }
+}
