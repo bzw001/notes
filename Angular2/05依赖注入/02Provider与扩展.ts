@@ -1,5 +1,3 @@
-import { LoggerService } from "./01\u4F9D\u8D56\u6CE8\u5165\u6982\u8FF0";
-
 //provider能够实现逻辑或者数据操作的封装，以接口方式提供给调用方使用。在前后台都有使用
 //对于angular来讲，provider说明了运行时的所需依赖，注入器根据它来创建服务对象的实例
 

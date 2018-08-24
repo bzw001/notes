@@ -262,6 +262,302 @@
  ```
 
  - 如何解析v-if, v-for这样的表达式的呢？ professIf与 professFor
+ > 只需要在解析头标签的内容加入这两个表达式的解析函数即可。
+ ```
+    if (html.match(startTagOpen)) {
+			const startTagMatch = parseStartTag();
+			const element = {
+				type: 1,
+				tag: startTagMatch.tagName,
+				attrsList: startTagMatch.attrs,
+				attrsMap: makeAttrsMap(startTagMatch.atts),
+				parent: currentParent,
+				children:[]
+			}
+
+			processIf(element);
+			processFor(element);
+
+			if (!root) {
+				root = element;
+			}
+			if (currentParent) {
+				currentParent.children.push(element);
+			}
+
+			stack.push(element);
+			currentParent = element;
+			continue
+		}
+		//从el的attrsMap属性或是attrslist属性取出name对应值
+
+		function getAndRemoveAttr(el, name) {
+			let val;
+			if ((val = el.attrsMap[name]) != null) {
+				const list = el.attrsList;
+				for (let i = 0, l = list.length; i < l; i++) {
+					if (list[i].name === name) {
+						list.splice(i , 1);
+						break;
+					}
+				}
+			}
+			return val;
+		}
+
+		// v-for 会将指令解析成for属性以及alias属性， 而v-if会将条件都存入ifConditions数组中
+
+		function processFor(e) {
+			let exp;
+			if ((exp = getAndRemoveAttr(el, 'v-for'))) {
+				const inMatch = exp.match(forAliasRE);
+				el.for = inMatch[2].trim();
+				el.alias = inMatch[1].trim();
+			}
+		}
+
+		function processIf(el) {
+			const exp = getAndRemoveAttr(el, 'v-if');
+			if (exp) {
+				el.if = exp;
+				if (!el.ifConditions) {
+					el.ifConditions = [];
+				}
+				el.ifConditions.push({
+					exp: exp,
+					block: el
+				})
+			}
+		}
+ ```
+
+ - optimize 
+> 优化。 给静态节点加上static 属性，那么在patch时bianhui9跳过这些标记的节点的比对
+```
+//optimize后的结果
+{
+	attrsMap: {
+		':class': 'c',
+		'class':'demo',
+		'v-if': 'isShow'
+	},
+	classBinding:'c',
+	'if': 'isShow',
+	ifConditions: [
+		'exp': 'isShow'
+	],
+	staticClass:'demo',
+	'tag':'div',
+	//静态标志
+	static: false,
+	children: [
+		{
+			attrsMap: {
+				'v-for':"item in sz"
+			},
+			static : false,
+			alias: 'item',
+			for: 'sz',
+			forProcessed: true,
+			tag: 'span',
+			children: [
+				{
+					expression: '_s(item)',
+					text: '{{item}}',
+					static: false
+				}
+			]
+		}
+	]
+}
+
+// isStatic
+// 判断是否为静态节点
+function isStatic(node) {
+	if (node.type === 2) {
+		return false;
+	}
+	if (node.type === 3) {
+		return true;
+	}
+	return (!node.if && !node.for)
+}
+
+//markStatic 
+//为所有节点标记上static ，遍历所有节点通过isStatic标记
+function markStatic (node) {
+	node.static = isStatic(node);
+	if (node.type === 1) {
+		for(let i =0, l = node.children.length; i< l; i++) {
+			const child = node.chilren[i];
+			markStatic(child);
+			if (!child.static) {
+				node.static = false;
+			}
+		}
+	}
+}
+
+//markStaticRoots
+//标记staticRoot, 如果当前节点是静态节点，同时并不是只有一个文本左右子节点
+function markStaticRoots(node) {
+	if (node.type === 1) {
+		if (node.static && node.children.length && !(
+			node.children.length === 1 &&
+			node.children[0].type ===3
+		)) {
+			node.staticRoot = true;
+		} else {
+			node.staticRoot = false;
+		}
+	}
+}
+
+//最后的optimize
+function optimize(rootAst) {
+	markStatic(rootAst);
+	markStaticRoot(rootAst);
+}
+```
+
+-  generate
+> 将AST 转换成render function 字符串, 最终得到render字符串以及staticRenderFns字符串
+```
+	//vue.js编译后的结果
+	with(this) {
+		return (isShow) ? 
+		_c(   //createElement
+			'div',
+			{
+				staticClass: 'demo',
+				class: c
+			},
+			_l(
+				(sz),
+				function (item) {
+					return _c('span', [_v(_s(item))])
+				}
+			)
+		)
+		: _e()
+	}
+
+	//第一层div节点
+	render() {
+		return isShow ? (new Vnode('div', {
+			'staticClass' : 'demo',
+			class : c
+		}, [/*子节点*/])) : createEmptyNode();
+	}
+
+	//在children中加上第二层span及其子文本节点
+	// 渲染v-for列表
+	function renderList(val, render) {
+		let ret = new Array(val.length);
+		for( let i =0, l = val.length; i< l; i++ ) {
+			ret[i] = render(val[i], i);
+		}
+	}
+	render() {
+		return isShow ? (new VNode('div', {
+			'staticClass': 'demo',
+			class: c
+		},
+			renderList(sz, (item) => {
+				return new Vnode('span', {}, [
+					createTextVNode()
+				])
+			})
+		)) : createEmptyVNode();
+	}
+
+	//genIf
+
+	function genIf(el) {
+		el.ifProcessed = true;
+		if (!el.ifConditions.length) {
+			return '_e()';
+		}
+		return `(${el.ifConditions[0].exp}) ? ${genElement(el.ifConditions[0].block)}: _e()`
+	}
+
+	//genFor 
+
+	function genFor(el) {
+		el.forProcessed = true;
+
+		const exp = el.for;
+		const alias = el.alias;
+		const interator1 = el.iterator1 ? `,${el.iterator1}` : '';
+		const interator2 = el.iterator2 ? `,${el.iterator2}` : '';
+
+		return `_l((${exp})),` + 
+					`function(${alias}${iterator1}${iterator2})` + 
+					`return ${genElement(el)}` +
+					'})'
+	}
+
+	//genText
+	function genText() {
+		return `_v(${el.expression})`
+	}
+
+	//genElement
+	//处理节点的函数， 依赖于genChildren, genNode
+	//genElement 会根据当前节点是否有if或者for标记然后判断是否要用genIf 或者genFor处理。
+	//不然会通过genChildrenm处理子节点,同时得到staticClass, class等属性
+	// genChildren: 遍历所有子节点， 通过genNode 处理后将"," 隔开凭借城字符串
+	//genNode根据type来判断节点是用文本节点genText还是标签节点genElement来处理
+
+	function genNode(el) {
+		if (el.type === 1) {
+			return genElement(el);
+		} else {
+			return genText(el);
+		}
+	}
+
+	function genChildren(el) {
+		const children = el.children;
+		if (children && chilren.length > 0) {
+			return `${children.map(genNode).join(',')}`;
+		}
+	}
+
+	function genElement(el) {
+		if (el.if && !el.ifProcessed) {
+			return genIf(el);
+		} else if (el.for && !el.forProcessed) {
+			return genFor(el);
+		} else {
+			const children = genChildren(el);
+			let code;
+			code = `_c('${el.tag},'{
+				staticClass: ${el.attrsMap && el.attrsMap[':calss']},
+				class: ${el.attrsMap && el.attrsMap['class]},
+			}${
+				children ? `,${children}` : ''
+			}
+			})`
+
+			return code;
+		}
+	}
+
+
+
+	
+
+	//generate 
+	//将整个AST传入后判断是否为空,为空则人会div标签
+	function generate(rootAst) {
+		const code = rootAst ? genElement(rootAst) : '_c("div")';
+		return {
+			render: `with(this){return ${code}}`
+		}
+	}
+
+```
 
  
  
