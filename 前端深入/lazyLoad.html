@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div class="container">
+        <div class="img">
+            <img data-src="./images/1.png" alt="加载中" class="pic">
+        </div>
+        <div class="img">
+            <img data-src="./images/2.png" alt="加载中" class="pic">
+        </div>
+    </div>
+    <script>
+        const imgs = document.getElementsByTagName('img');
+        //可视区域的高度
+        const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+        //num用于统计当前心啊是到了哪张图片，避免每次都从第一张图片开始检查是否露出
+        let num=0;
+        function lazyload() {
+            for(let i = num; i < imgs.length; i++) {
+                let distance = viewHeight - imgs[i].getBoundingClientRect().top;
+                if(distance > 0) {
+                    imgs[i].src = imgs[i].getAttribute('data-src');
+                    num = i + 1;
+                }
+            }
+        }
+        //监听scroll事件
+        window.addEventListener('scroll', lazyload, false)
+
+        function throttle (fn, interval) {
+            let last = 0;
+            //将throttle处理结果当作函数返回
+
+            return function() {
+                let context = this;
+                let args = arguments;
+                let now = +new Date();
+                //判断上次触发时间与本次触发的时间差是否小于时间间隔的阈值
+                if(now - last >= interval) {
+                    last = now;
+                    fn.apply(contenxt, args);
+                }
+            }
+        }
+
+        function debounce(fn, delay) {
+            let timer = null;
+            return function() {
+                let context = this;
+                let args = arguments;
+                if(timer) {
+                    clearTimeout(timer);
+                }
+                //设立新的定时器
+                timer = setTimeout(function() {
+                    fn.apply(context, args);
+                }, delay)
+            }
+        }
+    </script>
+</body>
+</html>

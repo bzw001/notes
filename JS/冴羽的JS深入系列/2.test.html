@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    class Person {
+      constructor(name, age) {
+        this.name = name;
+        this.age = age;
+      }
+    }
+    class Person1 {
+      constructor(name, age) {
+        this.name = name;
+        this.age = age;
+        return {
+          age: this.age,
+          name: '默认值'
+        }
+      }
+    }
+
+    
+    const person = new Person('张三',16);
+    console.log(person.name);
+    console.log(person.age);
+
+    const person1 = new Person1('张三',16);
+    console.log(person1.name);
+    console.log(person1.age);
+  </script>
+</body>
+</html>
