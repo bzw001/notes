@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<body>
+  <script>
+    function swap(arr, a, b) {
+      var tmp = arr[a];
+      arr[a] = arr[b];
+      arr[b] = tmp;
+    }
+
+    function partition(arr, left, right) {
+      var pivot = arr[left];
+      var storeIndex = left;
+      for (var i = left + 1; i <= right; i++) {
+        if (arr[i] < pivot) {
+          swap(arr, ++storeIndex, i);
+        }
+      }
+      swap(arr, left, storeIndex);
+      console.log(storeIndex);
+      return storeIndex;
+    }
+
+    function quickSort(arr) {
+      function sort(arr, left, right) {
+        if (left < right) {
+          var storeIndex = partition(arr, left, right);
+          sort(arr, left, storeIndex - 1);
+          sort(arr, storeIndex + 1, right);
+        }
+      }
+      sort(arr, 0, arr.length - 1);
+      return arr;
+    }
+    console.log(quickSort([3,4</script>,2]));
+  </script>
+</body>
+
+</html>
