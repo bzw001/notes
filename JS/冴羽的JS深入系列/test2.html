@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    // 单个任务
+    // function* gen() {
+    //   var result = yield Promise.resolve(1);
+    //   console.log(result);
+    // }
+
+    // var g = gen();
+    // var result = g.next();
+    // console.log(result);
+    // result.value.then((data) => {
+    //   return ++data;
+    // }).then((data) => {
+    //   g.next(data);
+    // })
+
+    // 多个任务
+
+    // function* gen() {
+    //   var r1 = yield Promise.resolve(1);
+    //   var r2 = yield Promise.resolve(2);
+    //   var r3 = yield Promise.resolve(3);
+    //   console.log(r1,r2,r3);
+    // }
+
+    // var g = gen();
+    // var r1 = g.next();
+    // r1.value.then(data => {
+    //   return ++data;
+    // }).then(data => {
+    //   return g.next(data).value;
+    // }).then(data => {
+    //   return ++data;
+    // }).then(data => {
+    //   return g.next(data).value;
+    // }).then(data => ++data)
+    //   .then(data => g.next(data));
+    function fetchData(url) {
+      return function(cb) {
+        setTimeout(() => {
+          cb({status: 200, data: url})
+        },2000)
+      }
+    }
+    function* gen() {
+      var r1 = yield fetchData('1');
+      var r2 = yield fetchData('2');
+
+      console.log(r1.data, r2.data);
+    }
+
+    var g = gen();
+    var r1 = g.next();
+    r1.value(data => {
+      console.log(data);
+      var r2 = g.next(data);
+      
+      r2.value((data) => {
+        g.next(data);
+      })
+    })
+
+
+  </script>
+</body>
+</html>
