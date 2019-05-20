@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<body>
+  <!-- <popup-info
+    img="https://user-gold-cdn.xitu.io/2019/5/15/16ab9aafa4371975?imageView2/1/w/316/h/460/q/85/format/jpg/interlace/1"
+    data-text="test"></popup-info> -->
+    <test-comp></test-comp>
+  <script>
+    class PopUpInfo extends HTMLElement {
+      static get observedAttributes() { return ['data-text','img'] } // 设置监听哪些属性变化,不然不能监听到
+      constructor() {
+        super();
+
+        const shadow = this.attachShadow({ mode: 'open' });
+
+        const wrapper = document.createElement('span');
+        wrapper.setAttribute('class', 'wrapper');
+
+        const icon = document.createElement('span');
+        icon.setAttribute('class', 'icon');
+        icon.setAttribute('tabindex', 0);
+
+        this.info = document.createElement('span');
+        this.info.setAttribute('class', 'info');
+        this.info.textContent =  this.getAttribute('data-text');
+
+        let imgUrl;
+        if (this.hasAttribute('img')) {
+          imgUrl = this.getAttribute('img');
+        } else {
+          imgUrl = "none";
+        }
+        console.log(this.getAttribute('data-text'));
+
+        this.img = document.createElement('img');
+        this.img.src = imgUrl;
+        icon.appendChild(this.img);
+
+        const style = document.createElement('style');
+        style.textContent = `
+        .wrapper {
+        position: relative;
+      }
+      .info {
+        font-size: 0.8rem;
+        width: 200px;
+        display: inline-block;
+        border: 1px solid black;
+        padding: 10px;
+        background: white;
+        border-radius: 10px;
+        opacity: 0;
+        transition: 0.6s all;
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        z-index: 3;
+      }
+      img {
+        width: 1.2rem;
+      }
+      .icon:hover + .info, .icon:focus + .info {
+        opacity: 1;
+      }
+        `;
+
+        shadow.appendChild(style);
+        shadow.appendChild(wrapper);
+        wrapper.appendChild(icon);
+        wrapper.appendChild(this.info);
+      }
+      attributeChangedCallback(name, oldValue, newValue) {
+        switch(name) {
+          case 'img':
+            this.img.src = newValue;
+            break;
+          case 'data-text':
+            this.info.innerText = newValue;
+            break;
+        }
+      }
+      connectedCallback () {
+        console.log('插入文档');
+      }
+      disconnectedCallback() {
+        console.log('从文档中删除');
+      }
+      adoptedCallback() {
+        console.log('被移动');
+      }
+      
+    }
+    customElements.define('popup-info', PopUpInfo);
+    class TestComp extends HTMLElement {
+      constructor() {
+        super();
+        // const shadow = this.attachShadow({mode: 'open'});
+        const popUpInfo =document.createElement('popup-info');
+        popUpInfo.setAttribute('img', 'https://user-gold-cdn.xitu.io/2019/5/15/16ab9aafa4371975?imageView2/1/w/316/h/460/q/85/format/jpg/interlace/1');
+        popUpInfo.setAttribute('data-text', 'test');
+        let button = document.createElement('button');
+        button.innerText = "点击";
+        button.addEventListener('click', () => {
+          console.log('button 点击');
+          console.log(popUpInfo);
+          // shadow.removeChild(popUpInfo);
+          popUpInfo.setAttribute('data-text','change');
+        });
+        document.body.appendChild(button);
+        document.body.insertBefore(popUpInfo,button);
+      }
+    }
+    customElements.define('test-comp', TestComp);
+  </script>
+
+</body>
+
+</html>

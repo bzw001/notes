@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="./proxy.js"></script>
+</head>
+
+<body>
+
+  <script>
+    let ids = {};
+    let id = 0;
+    const getUniqueId = () => {
+      // const candidateId = Math.round(Math.random() * 100000);
+      const candidateId = ++id;
+
+      if (ids[candidateId]) {
+        return getUniqueId();
+      }
+
+      ids[candidateId] = true;
+
+      return candidateId;
+    };
+
+    window.constructTree = (maxDeepness, maxNumberOfChildren, minNumOfNodes, deepness = 1) => {
+      return new Array(minNumOfNodes).fill(deepness).map((si, i) => {
+        const id = getUniqueId();
+        const numberOfChildren = deepness === maxDeepness ? 0 : Math.round(Math.random() * maxNumberOfChildren);
+
+        return {
+          id,
+          name: `Leaf ${id}`,
+          children: numberOfChildren ? constructTree(maxDeepness, maxNumberOfChildren, numberOfChildren, deepness + 1) : [],
+          state: {
+            // expanded: numberOfChildren ? Boolean(Math.round(Math.random())) : false,
+            expanded: false,
+            favorite: Boolean(Math.round(Math.random())),
+            deletable: Boolean(Math.round(Math.random())),
+          },
+        };
+      });
+    };  
+  </script>
+  <script>
+    var myObj = { firstName: "Joachim", lastName: "Wester", contactDetails: { phoneNumbers: [{ number: "555-123" }] } };
+    let largeArr = constructTree(6,10,5);
+    // console.log(JSON.parse(JSON.stringify(myObj)));
+    console.time('测试 largeArr');
+    var jsonPatcherProxy = new JSONPatcherProxy(largeArr);
+    var observedObject = jsonPatcherProxy.observe(false, (patch) => {
+      console.log(patch);
+    });
+    console.log(observedObject);
+    observedObject[2].children[1].id = '1';
+    observedObject[2].children[1].children[1].id = '1';
+    // var patches = jsonPatcherProxy.generate();
+    // console.log(patches);
+    console.timeEnd('测试 largeArr');
+  </script>
+</body>
+
+</html>
